@@ -25,6 +25,5 @@ graiax-silkcoder
 graia-broadcast
 graia-ariadne
 pycorrector
-git
 git+https://github.com/pharmapsychotic/BLIP.git
 torch
