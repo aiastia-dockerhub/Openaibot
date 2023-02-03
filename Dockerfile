@@ -1,4 +1,4 @@
-FROM python:3.10-slim AS builder
+FROM rust:1.67-slim AS builder
 ENV WORKDIR /app
 WORKDIR $WORKDIR
 ADD . $WORKDIR
