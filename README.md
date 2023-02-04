@@ -36,7 +36,9 @@ client.
 
 ### 🔨 Check
 
-Make sure your server has 1GB of RAM and 10GB of free storage
+Make sure your server has 1GB of RAM and 10GB of free storage.
+
+For Arm architecture servers: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
 
 ### 📦 Deploy/Renew
 
@@ -46,12 +48,20 @@ curl -LO https://raw.githubusercontent.com/LLMKira/Openaibot/main/setup.sh && sh
 
 ### 🍽 Configure
 
+- init
 ```shell
-cd Config/app_exp.toml Config/app.toml
+cp Config/app_exp.toml Config/app.toml
 
 nano Config/app.toml
-
 ```
+
+- Data
+
+```shell
+apt-get install redis
+systemctl start redis.service
+```
+- Config/app.toml
 
 ```toml
 # Comment out which part you don't want to start

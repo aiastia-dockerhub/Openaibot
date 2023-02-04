@@ -93,24 +93,43 @@ async def recognize_photo(bot: AsyncTeleBot, photo: Union[types.PhotoSize, types
     return None
 
 
-async def get_message(bot: AsyncTeleBot, message: types.Message):
+async def parse_photo(bot: AsyncTeleBot, message: types.Message) -> str:
+    if not BlipInterrogator:
+        return ""
+    if message.sticker and BlipInterrogator:
+        try:
+            photo_text = await recognize_photo(bot=bot, photo=message.sticker)
+        except Exception as e:
+            logger.warning(f"Blip:{e}")
+            photo_text = None
+        if photo_text:
+            msg_text = f"![Emoji|{photo_text}]"
+            return msg_text
+
+    if message.photo and BlipInterrogator:
+        msg_text = message.caption
+        # RECOGNIZE File
+        try:
+            photo_text = await recognize_photo(bot=bot, photo=message.photo[-1])
+        except Exception as e:
+            logger.warning(f"Blip:{e}")
+            photo_text = None
+        if photo_text:
+            BlipInterrogatorText = f"![PHOTO|{photo_text}]\n{message.caption}"
+            msg_text = f"{BlipInterrogatorText}"
+        return msg_text
+    return ""
+
+
+async def get_message(message: types.Message):
     # 自动获取名字
     msg_text = ""
     if message:
         msg_text = message.text
-    if message.photo and BlipInterrogator:
-        msg_text = message.caption
-        # RECOGNIZE File
-        photo_text = recognize_photo(bot=bot, photo=message.photo[-1])
-        if photo_text:
-            BlipInterrogatorText = f"![PHOTO|{photo_text}]\n{message.caption}"
-            msg_text = f"{BlipInterrogatorText}"
+    if message.photo:
+        msg_text = message.caption if message.caption else ""
     if message.sticker:
         msg_text = message.sticker.emoji
-        if BlipInterrogator:
-            photo_text = recognize_photo(bot=bot, photo=message.sticker)
-            if photo_text:
-                msg_text = f"![Emoji|{photo_text}]"
     prompt = [msg_text]
     _name = message.from_user.full_name
     group_name = message.chat.title if message.chat.title else message.chat.first_name
@@ -137,7 +156,7 @@ class BotRunner(object):
         bot = AsyncTeleBot(self.bot.botToken, state_storage=StateMemoryStorage())
         return bot, self.bot
 
-    def run(self, pLock=None):
+    def run(self):
         # print(self.bot)
         bot, _config = self.botCreate()
         bot: AsyncTeleBot
@@ -158,7 +177,7 @@ class BotRunner(object):
         # 私聊起动机
         @bot.message_handler(commands=["start", 'about', "help"], chat_types=['private'])
         async def handle_command(message):
-            _hand = await get_message(bot, message)
+            _hand = await get_message(message)
             _hand: User_Message
             if "/start" in _hand.text:
                 await bot.reply_to(message, await Event.Start(_config))
@@ -169,11 +188,10 @@ class BotRunner(object):
 
         # 群聊
         @bot.message_handler(content_types=['text', 'sticker', 'photo'], chat_types=['supergroup', 'group'])
-        async def group_msg(message):
-            _hand = await get_message(bot, message)
+        async def group_msg(message: types.Message):
+            _hand = await get_message(message)
             _hand: User_Message
             started = False
-
             # 回复逻辑判定
             if message.reply_to_message:
                 _name = message.reply_to_message.from_user.full_name
@@ -199,7 +217,7 @@ class BotRunner(object):
             elif _hand.text.startswith("/"):
                 _is_admin = await is_admin(message)
                 if _is_admin:
-                    _reply = await Event.GroupAdminCommand(Message=_hand, config=_config, pLock=pLock)
+                    _reply = await Event.GroupAdminCommand(Message=_hand, config=_config)
                     if _reply:
                         await bot.reply_to(message, "".join(_reply))
 
@@ -225,6 +243,9 @@ class BotRunner(object):
             # 触发
             if started:
                 request_timestamps.append(time.time())
+                # Blip
+                _recognized_photo_text = await parse_photo(bot, message)
+                _hand.prompt[-1] = f"{_hand.prompt[-1]}{_recognized_photo_text}"
                 _friends_message = await Event.Group(Message=_hand,
                                                      config=_config,
                                                      bot_profile=ProfileManager.access_telegram(init=False)
@@ -257,9 +278,8 @@ class BotRunner(object):
 
         # 私聊
         @bot.message_handler(content_types=['text', 'sticker', 'photo'], chat_types=['private'])
-        async def handle_private_msg(message):
-            _hand = await get_message(bot, message)
-
+        async def handle_private_msg(message: types.Message):
+            _hand = await get_message(message)
             # 检查管理员指令
             _real_id = message.from_user.id
             _hand: User_Message
@@ -272,6 +292,9 @@ class BotRunner(object):
             # 交谈
             if _hand.text.startswith(
                     ("/chat", "/voice", "/write", "/forgetme", "/style", "/remind")):
+                # Blip
+                _recognized_photo_text = await parse_photo(bot, message)
+                _hand.prompt[-1] = f"{_hand.prompt[-1]}{_recognized_photo_text}"
                 _friends_message = await Event.Friends(Message=_hand,
                                                        config=_config,
                                                        bot_profile=ProfileManager.access_telegram(init=False)
@@ -301,7 +324,7 @@ class BotRunner(object):
                     else:
                         await bot.reply_to(message, _friends_message.msg)
             if _real_id in _config.master:
-                _reply = await Event.MasterCommand(user_id=_real_id, Message=_hand, config=_config, pLock=pLock)
+                _reply = await Event.MasterCommand(user_id=_real_id, Message=_hand, config=_config)
                 # 检查管理员指令
                 if _hand.text == "/config":
                     path = str(pathlib.Path().cwd()) + "/" + "Config/config.json"
