@@ -18,30 +18,21 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateMemoryStorage
 
 from App import Event
-from utils import Setting, Blip, Sticker
+from utils import Setting, Sticker
+from utils.Blip import BlipServer
 from utils.Chat import Utils, PhotoRecordUtils
 from utils.Data import DefaultData, User_Message, create_message, PublicReturn, Service_Data
 from utils.Frequency import Vitality
 
 from PIL import Image
 
-import torch
-
-# from utils.Base import Tool
-if not torch.cuda.is_available():
-    logger.warning("GPU Unavailable,If You Enable The Media Service,May Cause CPU OverLoaded")
-
 _service = Service_Data.get_key()
 BLIP_CONF = _service["media"]["blip"]
 STICKER_CONF = _service["media"]["sticker"]
 
 if BLIP_CONF.get("status"):
-    BlipModel = BLIP_CONF.get("model")
-    if BlipModel not in ['large', 'base']:
-        BlipModel = 'large'
-    BlipConfig = Blip.Config()
-    BlipConfig.model = BlipModel
-    BlipInterrogator = Blip.Interrogator(BlipConfig)
+    BlipBackEnd = BLIP_CONF.get("api")
+    BlipInterrogator = BlipServer(api=BlipBackEnd)
 else:
     BlipInterrogator = None
 
@@ -78,46 +69,70 @@ async def recognize_photo(bot: AsyncTeleBot, photo: Union[types.PhotoSize, types
     if _history:
         return _history
     if _file_info.file_size > 10485760:
-        return "Too Large Photo"
+        return "TooLargePhoto"
     downloaded_file = await bot.download_file(_file_info.file_path)
     with tempfile.NamedTemporaryFile(suffix=".png") as f:
         f.write(downloaded_file)
         f.flush()
-        image_pil = Image.open(f.name).convert('RGB')
-    if downloaded_file:
-        BlipInterrogatorText = BlipInterrogator.generate_caption(
-            pil_image=image_pil)
+        BlipInterrogatorText = await BlipInterrogator.generate_caption(
+            image_file=f.name)
         if BlipInterrogatorText:
             PhotoRecordUtils.setKey(_file_info.file_unique_id, BlipInterrogatorText)
-        return BlipInterrogatorText
-    return None
+    return BlipInterrogatorText
 
 
 async def parse_photo(bot: AsyncTeleBot, message: types.Message) -> str:
+    """
+    单线图像理解，而不采用列表添加的方式....
+    :param bot:
+    :param message:
+    :return:
+    """
     if not BlipInterrogator:
         return ""
+    msg_text = None
     if message.sticker and BlipInterrogator:
         try:
             photo_text = await recognize_photo(bot=bot, photo=message.sticker)
+            msg_text = f"![Emoji|{photo_text}]"
         except Exception as e:
             logger.warning(f"Blip:{e}")
-            photo_text = None
-        if photo_text:
-            msg_text = f"![Emoji|{photo_text}]"
+        if msg_text:
             return msg_text
+    if message.reply_to_message:
+        if message.reply_to_message.sticker and BlipInterrogator and not message.sticker:
+            try:
+                photo_text = await recognize_photo(bot=bot, photo=message.reply_to_message.sticker)
+                msg_text = f"![Emoji|{photo_text}]"
+            except Exception as e:
+                logger.warning(f"Blip:{e}")
+            if msg_text:
+                return msg_text
 
     if message.photo and BlipInterrogator:
-        msg_text = message.caption
+        msg_caption = message.caption if message.caption else ""
         # RECOGNIZE File
         try:
             photo_text = await recognize_photo(bot=bot, photo=message.photo[-1])
+            BlipInterrogatorText = f"![Photo|{photo_text}]\n{msg_caption}"
+            msg_text = f"{BlipInterrogatorText}"
         except Exception as e:
             logger.warning(f"Blip:{e}")
-            photo_text = None
-        if photo_text:
-            BlipInterrogatorText = f"![PHOTO|{photo_text}]\n{message.caption}"
-            msg_text = f"{BlipInterrogatorText}"
-        return msg_text
+        if msg_text:
+            return msg_text
+    if message.reply_to_message:
+        if message.reply_to_message.photo and BlipInterrogator and not message.photo:
+            msg_caption = message.reply_to_message.caption if message.reply_to_message.caption else ""
+            # RECOGNIZE File
+            try:
+                photo_text = await recognize_photo(bot=bot, photo=message.reply_to_message.photo[-1])
+                BlipInterrogatorText = f"![Photo|{photo_text}]\n{msg_caption}"
+                msg_text = f"{BlipInterrogatorText}"
+            except Exception as e:
+                logger.warning(f"Blip:{e}")
+            if msg_text:
+                return msg_text
+
     return ""
 
 
@@ -245,7 +260,8 @@ class BotRunner(object):
                 request_timestamps.append(time.time())
                 # Blip
                 _recognized_photo_text = await parse_photo(bot, message)
-                _hand.prompt[-1] = f"{_hand.prompt[-1]}{_recognized_photo_text}"
+                if _recognized_photo_text:
+                    _hand.prompt.append(_recognized_photo_text)
                 _friends_message = await Event.Group(Message=_hand,
                                                      config=_config,
                                                      bot_profile=ProfileManager.access_telegram(init=False)
@@ -294,7 +310,8 @@ class BotRunner(object):
                     ("/chat", "/voice", "/write", "/forgetme", "/style", "/remind")):
                 # Blip
                 _recognized_photo_text = await parse_photo(bot, message)
-                _hand.prompt[-1] = f"{_hand.prompt[-1]}{_recognized_photo_text}"
+                if _recognized_photo_text:
+                    _hand.prompt.append(_recognized_photo_text)
                 _friends_message = await Event.Friends(Message=_hand,
                                                        config=_config,
                                                        bot_profile=ProfileManager.access_telegram(init=False)
