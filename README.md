@@ -2,7 +2,7 @@
 ------------------------------------
 <p align="center">
   <img alt="License" src="https://img.shields.io/badge/LICENSE-AGPL-ff69b4">
-  <img src="https://img.shields.io/badge/Python-3.7|8|9|10-green" alt="Python" >
+  <img src="https://img.shields.io/badge/Python-3.8|9|10|11-green" alt="Python" >
   <a href="https://afdian.net/a/Suki1077"><img src="https://img.shields.io/badge/Buyme-milk-DB94A2" alt="SPONSOR"></a>
   <a href="https://app.fossa.com/projects/git%2Bgithub.com%2Fsudoskys%2FOpenaibot?ref=badge_small" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsudoskys%2FOpenaibot.svg?type=small"/></a>
 </p>
@@ -99,29 +99,83 @@ proxy = { status = false, url = "http://127.0.0.1:7890" }
 
 # 基础对话事件服务器，Web支持或者音箱用
 [Controller.BaseServer]
+host = "127.0.0.1"
+reload = false
 port = 9559
 ```
 
-### Run
+### 🪶 App Token
+
+- Telegram
+
+[Telegram BotToken Request](https://t.me/BotFather)
+
+Make sure *the bot is a group admin* or *privacy mode is turned off*.
+
+- QQ
+
+[Configuring the QQ bot](https://graiax.cn/before/install_mirai.html)
+
+### 🌻 Run Bot
+
+Our robots can be started in multiple processes.
 
 ```shell
 apt install npm
 npm install pm2@latest -g
 # or
 yarn global add pm2
+
+# test bot
+python3 main.py
+
+# run bot
+pm2 start pm.json
 ```
 
-`pm2 start pm.json`
+### 🎤 Or Run Voice Assistant
+
+In addition to the robot, we also have a voice assistant.
+
+Voice Assistant is a web-dependent voice assistant that you can easily run on small devices through Azure or Openai's
+recognition services.
+
+- Run BaseEvent Server
+
+```toml
+# 基础对话事件服务器，Web支持或者音箱用
+[Controller.BaseServer]
+port = 9559
+```
+
+- Run Vits Server
+
+https://github.com/LlmKira/MoeGoe
+
+- Run Assistant
+
+```shell
+cd Assistant
+cat install.md
+pip3 install -r requirements.txt
+python3 clinet.py
+```
 
 ### 🥕 Add Api Key
 
-Use `/add_api_key` Command add [OpenaiKey](https://beta.openai.com/account/api-keys)
+Use `/add_api_key` Command add [OpenaiKey](https://beta.openai.com/account/api-keys) to `Config/api_keys.json`.
 
 ### 🧀 More Docs
 
 Details On [Deploy Guide](https://llmkira.github.io/Docs/en/guide/getting-started)
 
+Network Plugins/Proxy Settings/Custom Model Names/Speech Services/Picture Understanding/Censor Configuration
+Please see [Service Configuration Guide](https://llmkira.github.io/Docs/guide/service)
+
 详细接口/服务配置/自定义 请查看文档 [Deploy Guide](https://llmkira.github.io/Docs/guide/getting-started)
+
+插件设置/代理设置/自定义模型名称/语音服务/图片理解/审查配置
+请查看 [服务配置](https://llmkira.github.io/Docs/guide/service)
 
 ## 🤗 Join Our Community
 
@@ -149,4 +203,4 @@ the [AGPL License](https://github.com/LLMKira/Openaibot/blob/main/LICENSE).
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsudoskys%2FOpenaibot.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsudoskys%2FOpenaibot?ref=badge_large)
 
-
+> You wouldn't believe it, but Ai also wrote part of this Readme
