@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   openaibot:
-    image: aiastia/openaibot
+    image: aiastia/openaibot:main
     command: python3 main.py
     volumes:
       - ./:/app
@@ -16,6 +16,18 @@ services:
       - ./redis:/data
     ports:
       - 6379:6379
+    depends_on:
+      - BlipServer
+    networks:
+      - app-tier
+
+  BlipServer:
+    image: aiastia/blipserver:main
+    command: python3 app.py
+    volumes:
+      - /home/ubuntu/BlipServer/:/app
+    ports:
+      - 10885:10885 
     networks:
       - app-tier
 
