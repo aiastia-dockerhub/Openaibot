@@ -4,6 +4,7 @@ services:
   openaibot:
     image: aiastia/openaibot:main
     command: python3 main.py
+    restart: always
     volumes:
       - ./:/app
     depends_on:
