@@ -9,6 +9,8 @@
 
 <h2 align="center">OpenaiBot</h2>
 
+[中文](https://github.com/LlmKira/Openaibot/blob/main/README_ZH.md)
+
 全平台，多模态(语音/图片)理解，自维护套件，实时信息支持
 
 If you don't have the instant messaging platform you need or you want to develop a new application, you are welcome to
@@ -40,12 +42,19 @@ client.
 
 Make sure your server has 1GB of RAM and 10GB of free storage.
 
-For Arm architecture servers: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+For Arm architecture servers: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh` (The setup.sh can now
+automatically install rust.)
 
 ### 📦 Deploy/Renew
 
 ```shell
 curl -LO https://raw.githubusercontent.com/LLMKira/Openaibot/main/setup.sh && sh setup.sh
+```
+
+For Chinese users
+
+```shell
+curl -LO https://raw.kgithub.com/LLMKira/Openaibot/main/setup.sh && sh setup.sh
 ```
 
 ### 🍽 Configure
@@ -62,7 +71,7 @@ nano Config/app.toml
 
 ```shell
 apt-get install redis
-systemctl start redis.service
+systemctl enable redis.service --now
 ```
 
 - Config/app.toml
@@ -163,6 +172,36 @@ python3 clinet.py
 ### 🥕 Add Api Key
 
 Use `/add_api_key` Command add [OpenaiKey](https://beta.openai.com/account/api-keys) to `Config/api_keys.json`.
+
+### 🫧 About ID
+
+You'll be wondering about our multi-platform ID system. This is how we store your ID in our
+json/database: `real_id` + `suffix`.
+
+- toml
+
+Use your real ID in `app.toml`, which is the whitelist prompt without the suffix.
+
+- json/command
+
+When using the user/group authorization command, you need to follow the real ID with the corresponding suffix ID.
+
+| Controller | suffix_id | desc |
+|------------|-----------|------|
+| QQ         | 101       |      |
+| Telegram   | 100       |      |
+| Api        | 103       |      |
+
+### 🥪 About Models
+
+| models           | token limit | cost                                                          |
+|------------------|-------------|---------------------------------------------------------------|
+| code-davinci-002 | 8000        | During this initial limited beta period, Codex usage is free. |
+| code-cushman-001 | 2048        | During this initial limited beta period, Codex usage is free. |
+| text-davinci-003 | 4000        | $0.0200  /1K tokens                                           |
+| text-curie-001   | 2048        | $0.0020  /1K tokens                                           |
+| text-babbage-001 | 2048        | $0.0005  /1K tokens                                           |
+| text-ada-001     | 2048        | $0.0004  /1K tokens                                           |
 
 ### 🧀 More Docs
 
