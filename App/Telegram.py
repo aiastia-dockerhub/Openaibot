@@ -44,7 +44,7 @@ else:
     STICKER_PENALTY = 0.9
     EmojiPredict = None
 
-TIME_INTERVAL = 60
+TIME_INTERVAL = 60 * 60
 # 使用 deque 存储请求时间戳
 request_timestamps = deque()
 ProfileManager = Setting.ProfileManager()
@@ -131,7 +131,6 @@ async def parse_photo(bot: AsyncTeleBot, message: types.Message) -> str:
                 logger.warning(f"Blip:{e}")
             if msg_text:
                 return msg_text
-
     return ""
 
 
@@ -213,14 +212,16 @@ class BotRunner(object):
             _hand = await get_message(message)
             _hand: User_Message
             started = False
-            # 回复逻辑判定
+
+            # Reply
             if message.reply_to_message:
-                _name = message.reply_to_message.from_user.full_name
-                _name = DefaultData.name_split(sentence=_name, limit=16)
-                _text = str(message.reply_to_message.text)
-                _text = _text.replace(_config.INTRO, "")
+                _name = DefaultData.name_split(
+                    sentence=message.reply_to_message.from_user.full_name,
+                    limit=16
+                )
+                _text = str(message.reply_to_message.text).replace(_config.INTRO, "")
                 if f"{message.reply_to_message.from_user.id}" == f"{Setting.ProfileManager().access_telegram(init=False).bot_id}":
-                    # 交叉回复
+                    # 必回复
                     _trigger_message = await Event.Cross(_hand, _config)
                     if _trigger_message.status:
                         started = True
@@ -232,7 +233,7 @@ class BotRunner(object):
                 else:
                     _hand.prompt.append(f"{_name}:{_text}")
 
-            # 命令解析
+            # Command
             if _hand.text.startswith(("/chat", "/voice", "/write", "/forgetme", "/style", "/remind")):
                 started = True
             elif _hand.text.startswith("/"):
@@ -285,6 +286,7 @@ class BotRunner(object):
                                                      )
                 _friends_message: PublicReturn
                 if _friends_message.status:
+                    msg = None
                     if _friends_message.voice:
                         _caption = f"{_friends_message.reply}\n{_config.INTRO}"
                         msg = await bot.send_voice(chat_id=message.chat.id,
@@ -306,8 +308,11 @@ class BotRunner(object):
                                                        sticker=open(emoji, "rb"),
                                                        reply_to_message_id=message.id)
                     else:
-                        msg = await bot.reply_to(message, _friends_message.msg)
-                    Utils.trackMsg(f"{_hand.from_chat.id}{msg.id}", user_id=_hand.from_user.id)
+                        _trigger_message = await Event.Silent(_hand, _config)
+                        if not _trigger_message.status:
+                            msg = await bot.reply_to(message, _friends_message.msg)
+                    if msg:
+                        Utils.trackMsg(f"{_hand.from_chat.id}{msg.id}", user_id=_hand.from_user.id)
 
         # 私聊
         @bot.message_handler(content_types=['text', 'sticker', 'photo'], chat_types=['private'])
@@ -358,7 +363,9 @@ class BotRunner(object):
                                                        sticker=open(emoji, "rb")
                                                        )
                     else:
-                        await bot.reply_to(message, _friends_message.msg)
+                        _trigger_message = await Event.Silent(_hand, _config)
+                        if not _trigger_message.status:
+                            await bot.reply_to(message, _friends_message.msg)
             if _real_id in _config.master:
                 _reply = await Event.MasterCommand(user_id=_real_id, Message=_hand, config=_config)
                 # 检查管理员指令
