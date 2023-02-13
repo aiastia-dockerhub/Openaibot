@@ -144,6 +144,11 @@ async def get_message(message: types.Message):
         msg_text = message.caption if message.caption else ""
     if message.sticker:
         msg_text = message.sticker.emoji
+    reply_chat_id = None
+    reply_user_id = None
+    if message.reply_to_message:
+        reply_chat_id = message.reply_to_message.chat.id
+        reply_user_id = message.reply_to_message.from_user.id
     prompt = [msg_text]
     _name = message.from_user.full_name
     group_name = message.chat.title if message.chat.title else message.chat.first_name
@@ -155,6 +160,8 @@ async def get_message(message: types.Message):
         group_id=message.chat.id,
         text=msg_text,
         prompt=prompt,
+        reply_chat_id=reply_chat_id,
+        reply_user_id=reply_user_id,
         group_name=group_name,
     )
 
@@ -213,13 +220,13 @@ class BotRunner(object):
                 _text = str(message.reply_to_message.text)
                 _text = _text.replace(_config.INTRO, "")
                 if f"{message.reply_to_message.from_user.id}" == f"{Setting.ProfileManager().access_telegram(init=False).bot_id}":
-                    # Chat
-                    if not _hand.text.startswith("/"):
-                        _hand.text = f"/chat {_hand.text}"
-                    started = True
+                    # 交叉回复
+                    _trigger_message = await Event.Cross(_hand, _config)
+                    if _trigger_message.status:
+                        started = True
                     if str(Utils.checkMsg(
                             f"{_hand.from_chat.id}{message.reply_to_message.id}")) == f"{_hand.from_user.id}":
-                        pass
+                        started = True
                     else:
                         _hand.prompt.append(f"{_name}:{_text}")
                 else:
@@ -238,7 +245,6 @@ class BotRunner(object):
             # 分发指令
             if _hand.text.startswith("/help"):
                 await bot.reply_to(message, await Event.Help(_config))
-
             # 热力扳机
             if not started:
                 try:
@@ -253,9 +259,21 @@ class BotRunner(object):
                 except Exception as e:
                     logger.warning(
                         f"{e} \n This is a trigger Error,may [trigger] typo [tigger],try to check your config")
-
+                # Trace
+                try:
+                    _trigger_message = await Event.Trace(_hand, _config)
+                    if _trigger_message.status:
+                        if _hand.from_user.id == 777000100:
+                            _hand.from_user.id = _hand.from_chat.id
+                            started = True
+                            _hand.text = f"/chat {_hand.text}"
+                except Exception as e:
+                    logger.warning(
+                        f"{e} \n This is a trace Error")
             # 触发
             if started:
+                if not _hand.text.startswith("/"):
+                    _hand.text = f"/chat {_hand.text}"
                 request_timestamps.append(time.time())
                 # Blip
                 _recognized_photo_text = await parse_photo(bot, message)
@@ -326,6 +344,8 @@ class BotRunner(object):
                                              )
                     elif _friends_message.reply:
                         _caption = f"{_friends_message.reply}\n{_config.INTRO}"
+                        if _hand.from_user.id == 777000100:
+                            _caption = f"{_friends_message.reply}"
                         await bot.reply_to(message, _caption)
                         if EmojiPredict:
                             emoji = EmojiPredict.predict(prompt=_caption,

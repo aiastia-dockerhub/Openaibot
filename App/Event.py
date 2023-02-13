@@ -71,6 +71,9 @@ if PROXY_CONF.status:
 
 llm_kira.setting.redisSetting = llm_kira.setting.RedisConfig(**REDIS_CONF)
 llm_kira.setting.llmRetryTime = 2
+llm_kira.setting.llmRetryTimeMax = 100
+llm_kira.setting.llmRetryTimeMin = 5
+llm_kira.setting.llmRetryAttempt = 6
 
 urlForm = {
     "Danger.form": [
@@ -801,6 +804,30 @@ async def Trigger(Message: User_Message, config) -> PublicReturn:
     return PublicReturn(status=False, trace="No trigger")
 
 
+async def Trace(Message: User_Message, config) -> PublicReturn:
+    """
+    :param Message: group id
+    :param config:
+    :return: TRUE,msg -> 在白名单
+    """
+    group_id = Message.from_chat.id
+    if GroupManager(group_id).read("trace"):
+        return PublicReturn(status=True, trace="TraceCheck")
+    return PublicReturn(status=False, trace="No Trace")
+
+
+async def Cross(Message: User_Message, config) -> PublicReturn:
+    """
+    :param Message: group id
+    :param config:
+    :return: TRUE,msg -> 在白名单
+    """
+    group_id = Message.from_chat.id
+    if GroupManager(group_id).read("cross"):
+        return PublicReturn(status=True, trace="CrossCheck")
+    return PublicReturn(status=False, trace="No Cross")
+
+
 async def GroupAdminCommand(Message: User_Message, config):
     load_csonfig()
     _reply = []
@@ -814,6 +841,25 @@ async def GroupAdminCommand(Message: User_Message, config):
                 _set = False
             _group_manger.save({"trigger": _set})
             _ev = f"Group Admin:GroupTrigger {_set}"
+            _reply.append(_ev)
+            logger.info(_ev)
+        #
+        if command.startswith("/trace"):
+            _group_manger = GroupManager(int(group_id))
+            _set = True
+            if _group_manger.read("trace"):
+                _set = False
+            _group_manger.save({"trace": _set})
+            _ev = f"Group Admin:GroupTrace {_set}"
+            _reply.append(_ev)
+            logger.info(_ev)
+        if command.startswith("/cross"):
+            _group_manger = GroupManager(int(group_id))
+            _set = True
+            if _group_manger.read("cross"):
+                _set = False
+            _group_manger.save({"cross": _set})
+            _ev = f"Group Admin:GroupCross {_set}"
             _reply.append(_ev)
             logger.info(_ev)
     except Exception as e:
