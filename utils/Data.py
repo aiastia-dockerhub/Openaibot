@@ -395,7 +395,7 @@ class Openai_Api_Key(object):
         _masked_key = DefaultData.mask_middle(key, 4)
         logger.warning(f"Api Key be Removed:{_masked_key},because {log}")
 
-    def check_api_key(self, resp, auth):
+    def check_api_key(self, resp: dict, auth: str):
         # 读取
         _error = ["invalid_request_error", "billing_not_active", "billing_not_active", "insufficient_quota"]
         # 弹出
@@ -416,7 +416,7 @@ class Openai_Api_Key(object):
                 self.warn_api_key(key=auth, log=logg)
             else:
                 logg = f"{ERROR.get('type')}"
-            logger.warning(logg)
+                logger.warning(logg)
 
 
 class ExpiringDict(OrderedDict):
