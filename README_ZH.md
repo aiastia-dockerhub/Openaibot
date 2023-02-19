@@ -138,6 +138,14 @@ python3 main.py
 # run bot
 pm2 start pm.json
 ```
+查看机器人的运行状况
+```
+pm2 monit
+```
+停止运行机器人
+```
+pm2 stop pm2.json
+```
 
 ### 🎤 Or Run Voice Assistant
 
@@ -281,6 +289,7 @@ Network Plugins/Proxy Settings/自定义模型名称/语音服务/图片理解/C
 - [LLM Kira](https://github.com/LLMKira/llm-kira)
 - [text_analysis_tools](https://github.com/murray-z/text_analysis_tools)
 - [MoeGoe Voice](https://github.com/CjangCjengh/MoeGoe)
+- [duckduckgo_search](https://github.com/deedy5) @deedy5
 
 ## 📃 License
 

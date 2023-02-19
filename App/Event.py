@@ -23,7 +23,6 @@ from utils.Setting import ProfileReturn
 from utils.TTS import TTS_Clint, TTS_REQ
 from utils.Detect import DFA, Censor, Detect
 from utils.Logging import LoadResponseError
-from utils.Lock import pLock
 
 import llm_kira
 from llm_kira.utils.chat import Cut
@@ -266,7 +265,7 @@ class Reply(object):
         """
         load_csonfig()
         #
-        _think = ThinkEngine(profile=profile)
+        _think = ThinkEngine(profile=self.group)
         _think.register_hook(Hook(name="sad", trigger="very sad", value=3, last=60, time=int(time.time())))
         _think.register_hook(Hook(name="bored", trigger="very bored", value=3, last=60, time=int(time.time())))
         # 关键检查
@@ -274,6 +273,7 @@ class Reply(object):
         if not status:
             _think.hook(random.choice(["bored"]))
             return PublicReturn(status=True, trace="Req", reply=log)
+
         # Api Key 检查
         if not OPENAI_API_KEY_MANAGER.get_key():
             logger.error("Api Check:Api Key pool empty")
@@ -583,7 +583,7 @@ async def Group(Message: User_Message, bot_profile: ProfileReturn, config) -> Pu
         restart_name=restart_name,
         conversation_id=int(_cid),
     )
-    _think = ThinkEngine(profile=conversation)
+    _think = ThinkEngine(profile=_chat_id)
     _think.register_hook(Hook(name="happy", trigger="very happy", value=3, last=60, time=int(time.time())))
     _think.register_hook(Hook(name="sad", trigger="very sad", value=4, last=120, time=int(time.time())))
     _think.register_hook(Hook(name="bored", trigger="very bored", value=5, last=30, time=int(time.time())))
@@ -631,12 +631,9 @@ async def Group(Message: User_Message, bot_profile: ProfileReturn, config) -> Pu
         auto_penalty=_csonfig["auto_adjust"],
     )
     # 构建
-    _think = ThinkEngine(profile=conversation)
-    _description = str(time.strftime("%Y/%m/%d %H:%M", time.localtime()))
+    _description = "📱💬|Now " + str(time.strftime("%Y/%m/%d %H:%M", time.localtime())) + "|"
     _description += f" 🌙" if _think.is_night else random.choice([" 🌻", " 🌤", " 🌦"])
-    _description += f"\n{''.join(_think.build_status(rank=18))}"
-    _description += f"\n📱💬 with {start_name}"
-
+    _description += f"\n{restart_name}-{''.join(_think.build_status(rank=20))}"
     promptManager = llm_kira.creator.PromptEngine(profile=conversation,
                                                   connect_words="\n",
                                                   memory_manger=llm_kira.client.MemoryManager(profile=conversation),
@@ -725,7 +722,7 @@ async def Friends(Message: User_Message, bot_profile: ProfileReturn, config) -> 
         restart_name=restart_name,
         conversation_id=int(_cid),
     )
-    _think = ThinkEngine(profile=conversation)
+    _think = ThinkEngine(profile=_chat_id)
     _think.register_hook(Hook(name="happy", trigger="very happy", value=3, last=60, time=int(time.time())))
     _think.register_hook(Hook(name="sad", trigger="very sad", value=4, last=120, time=int(time.time())))
     _think.register_hook(Hook(name="bored", trigger="very bored", value=5, last=30, time=int(time.time())))
@@ -775,12 +772,9 @@ async def Friends(Message: User_Message, bot_profile: ProfileReturn, config) -> 
         auto_penalty=_csonfig["auto_adjust"],
     )
     # 构建
-    _think = ThinkEngine(profile=conversation)
-    _description = str(time.strftime("%Y/%m/%d %H:%M", time.localtime()))
+    _description = "📱💬|Now " + str(time.strftime("%Y/%m/%d %H:%M", time.localtime())) + "|"
     _description += f" 🌙" if _think.is_night else random.choice([" 🌻", " 🌤", " 🌦"])
-    _description += f"\n{''.join(_think.build_status(rank=20))}"
-    _description += f"\n📱💬 with {start_name}|"
-
+    _description += f"\n{restart_name}-{''.join(_think.build_status(rank=20))}"
     promptManager = llm_kira.creator.PromptEngine(profile=conversation,
                                                   connect_words="\n",
                                                   memory_manger=llm_kira.client.MemoryManager(profile=conversation),
