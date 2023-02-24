@@ -19,6 +19,8 @@
 
 我们使用自维护的 [llm-kira](https://github.com/LLMKira/llm-kira) 实现对话客户端
 
+**有部署问题请提交 Issue /讨论 而不是给我发邮件或私聊.**
+
 ## 🥽 Feature
 
 * 异步
@@ -49,23 +51,16 @@
 curl -LO https://raw.githubusercontent.com/LLMKira/Openaibot/main/setup.sh && sh setup.sh
 ```
 
-给中国用户
+连不上 Github 请使用下面的镜像
 
 ```shell
 curl -LO https://raw.kgithub.com/LLMKira/Openaibot/main/setup.sh && sh setup.sh
 ```
+或者使用 [Docker Deploy](https://llmkira.github.io/Docs/guide/getting-started#docker)
 
 ### 🍽 Configure
 
-- 初始化
-
-```shell
-cp Config/app_exp.toml Config/app.toml
-
-nano Config/app.toml
-```
-
-- 数据
+- 配置数据服务器
 
 ```shell
 apt-get install redis
@@ -74,13 +69,19 @@ systemctl start redis.service
 
 - 配置/app.toml
 
+```shell
+cp Config/app_exp.toml Config/app.toml
+
+nano Config/app.toml
+```
+
 ```toml
 # Comment out which part you don't want to start
 
 # QQ Bot
 [Controller.QQ]
-master = [114, 514] # master user id
-account = 0
+master = [114, 514] # 你的QQ号码
+account = 0 # 机器人的 QQ 号码
 http_host = 'http://localhost:8080'   # Mirai http Server
 ws_host = 'http://localhost:8080'   # Mirai Websocket Server
 verify_key = ""
@@ -88,19 +89,17 @@ trigger = false # Proactive response when appropriate
 INTRO = "POWER BY OPENAI"  # Suffixes for replies
 ABOUT = "Created by github.com/LLMKira/Openaibot" # /about
 WHITE = "Group NOT in WHITE list" # Whitelist/Blacklist tips
-
 # Proxy set, but does not proxy openai api, only bot
 proxy = { status = false, url = "http://127.0.0.1:7890" }
 
 # Telegram Bot
 [Controller.Telegram]
-master = [114, 514] # master user id
+master = [114, 514] # 你的用户 ID 找 @JsonDumpBot 看 message from id
 botToken = '' # Bot Token @botfather
 trigger = false
 INTRO = "POWER BY OPENAI"
 ABOUT = "Created by github.com/LLMKira/Openaibot"
 WHITE = "Group NOT in WHITE list"
-
 # 设置的代理，但是不代理 openai api, 只代理 bot
 proxy = { status = false, url = "http://127.0.0.1:7890" }
 
@@ -110,27 +109,7 @@ host = "127.0.0.1"
 port = 9559
 ```
 
-- Config/service.json
-
-```json5
-{
-  // ....other config
-
-  // ******Models
-  "backend": {
-    "type": "openai",
-    // TYPE!
-    "openai": {
-      "model": "text-davinci-003",
-      "token_limit": 4000
-    },
-    "chatgpt": {
-      "api": null,
-      "agree": false
-    }
-  },
-}
-```
+如果你想要配置其他模型或者配置 OpenaiApi 的代理，请查看 [Deploy Docs](https://llmkira.github.io/Docs/guide/service)
 
 ### 🪶 App Token
 
@@ -138,7 +117,9 @@ port = 9559
 
 [Telegram BotToken Request](https://t.me/BotFather)
 
-请确保 *机器人是组管理员* 或 *隐私模式已关闭*.
+在部署先请重新生成token防止其他服务占用轮询。
+
+另外请确保 *机器人是组管理员* 或 *关闭隐私模式*.
 
 - QQ
 
@@ -146,7 +127,7 @@ port = 9559
 
 ### 🌻 Run Bot
 
-我们的机器人可以多线程运行
+我们的机器人可以多进程运行
 
 ```shell
 apt install npm
@@ -158,20 +139,22 @@ yarn global add pm2
 python3 main.py
 
 # run bot
-pm2 start pm.json
-```
+pm2 start pm2.json
 
-查看机器人的运行状况
+# 查看机器人的运行状况
 
-```
-pm2 monit
-```
+pm2 status
 
-停止运行机器人
-
-```
+# 停止
 pm2 stop pm2.json
+
+# 重启
+pm2 restart 任务id
+
 ```
+
+配置后，发一条消息，使用 `/add_white_user` 命令加入机器人返回的你的平台ID到白名单，就可以对话啦。
+或者使用 `/close_group_white_mode` 关闭机器人的 *群组白名单* 模式。
 
 ### 🎤 Or Run Voice Assistant
 
