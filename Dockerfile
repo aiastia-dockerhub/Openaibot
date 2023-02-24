@@ -1,4 +1,4 @@
-FROM python:3.10-slim AS builder
+FROM python:3.10-slim-bullseye AS builder
 RUN apt update && apt install build-essential -y
 COPY ./requirements.txt .
 # Tiktoken requires Rust toolchain, so build it in a separate stage
