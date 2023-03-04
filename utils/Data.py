@@ -203,8 +203,8 @@ class DefaultData(object):
     def defaultConfig():
         return {
             "statu": True,
-            "input_limit": 500,
-            "token_limit": 500,
+            "input_limit": 800,
+            "token_limit": 1000,
             "hour_limit": 15000,
             "per_user_limit": 1,
             "usercold_time": 10,
@@ -252,11 +252,12 @@ class DefaultData(object):
 
     @staticmethod
     def defaultUser():
-        return {"white": False,
-                "block": False,
-                "usage": 1,
-                "voice": False
-                }
+        return {
+            "white": False,
+            "block": False,
+            "usage": 1,
+            "voice": False
+        }
 
     # 单独配额，如果这里不是 1,优先按这这分配额度
     @staticmethod
@@ -302,8 +303,8 @@ class DefaultData(object):
                     "api": "http://127.0.0.1:10885/upload/"
                 },
                 "sticker": {
-                    "status": False,
-                    "penalty": 0.92
+                    "status": True,
+                    "penalty": 0.95
                 }
             },
             "moderation_type": [
