@@ -1,3 +1,15 @@
+FROM ubuntu:latest
+
+RUN apt-get update && \
+    apt-get install -y git build-essential cmake libboost-all-dev
+
+WORKDIR /tikion
+RUN git clone https://github.com/tikion/tikion.git . && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make
+
 FROM rust:1.67 AS builder
 ENV WORKDIR /app
 WORKDIR $WORKDIR
