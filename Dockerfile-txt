@@ -1,7 +1,7 @@
 FROM python:3.11-slim-bullseye
 
 # Install required system packages
-RUN apt-get update && apt-get install -y curl gcc git
+RUN apt-get update && apt-get install -y curl gcc git build-essential ffmpeg
 
 # Install Rustup
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
@@ -10,10 +10,8 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Install Python packages
-RUN pip install --upgrade pip && pip install tiktoken
-
+RUN pip install --upgrade pip
 ENV WORKDIR /app
 WORKDIR $WORKDIR
 ADD . $WORKDIR
-RUN apt install build-essential ffmpeg -y 
 RUN pip install --no-cache-dir -r requirements.txt
