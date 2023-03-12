@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:latest AS builder1
 
 RUN apt-get update && \
     apt-get install -y git build-essential cmake libboost-all-dev
@@ -10,13 +10,9 @@ RUN git clone https://github.com/tikion/tikion.git . && \
     cmake .. && \
     make
 
-FROM rust:1.67 AS builder
+FROM rust:1.67 AS builder2
 ENV WORKDIR /app
 WORKDIR $WORKDIR
 ADD . $WORKDIR
 RUN apt update && apt install build-essential git curl python3-pip python3-dev ffmpeg libssl-dev libffi-dev -y
-RUN git clone https://github.com/tikion/tikion.git \&&
-    cd tikion \&&
-    pip install -r requirements.txt \&&
-    pip install .
 RUN pip install --upgrade --no-cache-dir pip && pip install --no-cache-dir -r requirements.txt
