@@ -1,19 +1,17 @@
-FROM ubuntu:latest AS builder1
+FROM python:3.11-slim-bullseye as builder
 
-RUN apt-get update && \
-    apt-get install -y git build-essential cmake libboost-all-dev
+# Tiktoken requires Rust toolchain, so build it in a separate stage
+RUN apt-get update && apt-get install -y gcc curl build-essential -y
+COPY ./requirements.txt .
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && apt-get install --reinstall libc6-dev -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN pip install --upgrade pip && pip install tiktoken
 
-WORKDIR /tikion
-RUN git clone https://github.com/tikion/tikion.git . && \
-    mkdir build && \
-    cd build && \
-    cmake .. && \
-    make
-
-FROM rust:1.67 
+FROM python:3.11-slim-bullseye
 ENV WORKDIR /app
 WORKDIR $WORKDIR
 ADD . $WORKDIR
-COPY --from=builder1 /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
-RUN apt update && apt install build-essential git curl python3-pip python3-dev ffmpeg libssl-dev libffi-dev -y
-RUN pip install --upgrade --no-cache-dir pip && pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install ffmpeg -y
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.10/site-packages
+
+
