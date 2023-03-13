@@ -1,9 +1,14 @@
     name: clean
-
 on:
-  repository_dispatch:
   workflow_dispatch:
-    inputs:
+  
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     
     - name: Delete workflow runs
       uses: GitRML/delete-workflow-runs@main
