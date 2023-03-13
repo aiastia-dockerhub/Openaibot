@@ -1,7 +1,7 @@
 FROM python:3.11-slim-bullseye as builder
 
 # Tiktoken requires Rust toolchain, so build it in a separate stage
-RUN apt-get update && apt-get install -y gcc curl build-essential -y
+RUN apt-get update && apt-get install -y gcc curl build-essential ffmpeg -y
 COPY ./requirements.txt .
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && apt-get install --reinstall libc6-dev -y
 ENV PATH="/root/.cargo/bin:${PATH}"
@@ -11,7 +11,8 @@ FROM python:3.11-slim-bullseye
 ENV WORKDIR /app
 WORKDIR $WORKDIR
 ADD . $WORKDIR
-RUN apt-get update && apt-get install ffmpeg -y
+# RUN apt-get update && apt-get install ffmpeg -y
+COPY --from=builder /usr/local /usr/local/
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.10/site-packages
 
 
