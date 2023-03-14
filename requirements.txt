@@ -32,3 +32,4 @@ tzlocal
 psutil
 piexif
 pytz
+goose3
