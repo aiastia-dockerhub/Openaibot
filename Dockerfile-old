@@ -1,7 +1,8 @@
 FROM python:3.10-slim AS builder
 RUN apt update && apt install build-essential -y
 COPY ./requirements.txt .
-RUN pip install --upgrade --no-cache-dir pip && pip install tiktoken && pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade --no-cache-dir pip && pip install tiktoken 
+RUN pip install --no-cache-dir -r requirements.txt
 FROM python:3.10-slim
 ENV WORKDIR /app
 WORKDIR $WORKDIR
