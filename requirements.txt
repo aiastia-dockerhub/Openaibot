@@ -27,3 +27,5 @@ graia-broadcast
 graia-ariadne
 pycorrector
 fasttext
+langdetect
+fasttext-langdetect
