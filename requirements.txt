@@ -16,6 +16,7 @@ pathlib
 elara
 numpy
 #llm_kira>=0.7.4
+git+https://github.com/aiastia-bak/llm-kira.git
 scikit-learn
 beautifulsoup4
 wget
