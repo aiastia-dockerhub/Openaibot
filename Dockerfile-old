@@ -3,7 +3,7 @@ RUN apt update && apt install build-essential git curl -y
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && apt-get install --reinstall libc6-dev -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 COPY ./requirements.txt .
-RUN pip install --upgrade --no-cache-dir pip && pip install git+https://github.com/LlmKira/llm-kira.git
+RUN pip install --upgrade --no-cache-dir pip && pip install -U git+https://github.com/aiastia-bak/llm-kira.git
 RUN pip install --no-cache-dir -r requirements.txt
 FROM python:3.10-slim
 ENV WORKDIR /app
