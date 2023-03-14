@@ -33,3 +33,6 @@ psutil
 piexif
 pytz
 goose3
+langdetect
+fasttext-langdetect
+
