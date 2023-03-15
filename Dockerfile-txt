@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bullseye as builder
+FROM python:3.10-slim-bullseye as builder
 
 # Tiktoken requires Rust toolchain, so build it in a separate stage
 RUN apt-get update && apt-get install -y gcc curl
