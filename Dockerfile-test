@@ -1,9 +1,12 @@
 FROM python:3.10-slim-bullseye
+
 ENV WORKDIR /app
 WORKDIR $WORKDIR
 ADD . $WORKDIR
-RUN apt update && apt install -y gcc curl build-essential git python3-pip python3-dev ffmpeg 
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && apt install --reinstall libc6-dev -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-##RUN pip install --upgrade pip && pip install tiktoken
-RUN pip install --upgrade pip && pip install -r requirements.txt
+
+RUN apt update && apt install -y apt-utils curl build-essential git python3-pip ffmpeg && \
+    apt install -y python3.9-dev && \
+    curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+    export PATH="$HOME/.cargo/bin:$PATH" && \
+    pip install --upgrade pip && \
+    pip install -r requirements.txt
