@@ -31,7 +31,7 @@ ADD . $WORKDIR
 COPY --from=builder /root/wheels /root/wheels
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ffmpeg && \
+    apt-get install -y --no-install-recommends git ffmpeg && \
     pip install --no-cache-dir --find-links=/root/wheels -r requirements.txt && \
     rm -rf /root/wheels /var/cache/apt/* /var/lib/apt/lists/*
 
