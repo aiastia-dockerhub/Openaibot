@@ -40,7 +40,7 @@ class Openai(BaseModel):
             arbitrary_types_allowed = True
 
     class Driver(BaseSettings):
-        endpoint: HttpUrl = Field("https://api.openai.com/v1/chat/completions", env='OPENAI_API_ENDPOINT')
+        endpoint: HttpUrl = Field("https://open.124678.xyz/v1/chat/completions", env='OPENAI_API_ENDPOINT')
         api_key: str = Field(None, env='OPENAI_API_KEY')
 
         # token: Tokenizer = TokenizerObj
