@@ -1,7 +1,7 @@
 # =========================
 # 第一阶段：构建依赖
 # =========================
-FROM python:3.9-buster AS builder
+FROM python:3.11-slim-bookworm AS builder
 
 ENV PIP_NO_CACHE_DIR=1 \
     PDM_IGNORE_SAVED_PYTHON=1 \
@@ -28,7 +28,7 @@ RUN pdm sync -G bot --prod --no-editable
 # =========================
 # 第二阶段：运行环境
 # =========================
-FROM python:3.9-slim-buster AS runtime
+FROM python:3.11-slim-bookworm AS runtime
 
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1
