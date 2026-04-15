@@ -16,9 +16,10 @@ RUN pdm lock -G default -G bot && \
 FROM python:3.9-slim-bullseye AS runtime
 
 RUN apt update && \
-    apt install -y npm && \
+    apt install -y curl gnupg ffmpeg && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt install -y nodejs && \
     npm install pm2 -g && \
-    apt install -y ffmpeg && \
     pip install pdm
 
 VOLUME ["/redis", "/rabbitmq", "/mongodb", "/run.log", ".cache",".montydb",".snapshot"]
