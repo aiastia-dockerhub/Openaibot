@@ -9,7 +9,8 @@ RUN apt update && \
 
 COPY pyproject.toml pdm.lock README.md /project/
 WORKDIR /project
-RUN pdm sync -G bot --prod --no-editable
+RUN pdm lock -G default -G bot && \
+    pdm sync --prod --no-editable
 
 # 第二个阶段
 FROM python:3.9-slim-bullseye AS runtime
