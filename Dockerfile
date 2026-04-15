@@ -1,5 +1,5 @@
 # 第一个阶段
-FROM python:3.9-buster as builder
+FROM python:3.9-bullseye AS builder
 
 RUN apt update && \
     apt install -y build-essential && \
@@ -12,7 +12,7 @@ WORKDIR /project
 RUN pdm sync -G bot --prod --no-editable
 
 # 第二个阶段
-FROM python:3.9-slim-buster as runtime
+FROM python:3.9-slim-bullseye AS runtime
 
 RUN apt update && \
     apt install -y npm && \
