@@ -9,21 +9,22 @@ ENV PIP_NO_CACHE_DIR=1 \
 
 WORKDIR /project
 
-# 先装系统依赖（减少层 & 利用缓存）
+# 安装构建依赖
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
         ffmpeg \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
 # 安装 PDM
 RUN pip install --upgrade pip setuptools wheel pdm
 
-# 先只拷贝依赖文件（利用缓存）
+# 只复制依赖文件（利用缓存）
 COPY pyproject.toml pdm.lock README.md ./
 
-# 安装依赖
-RUN pdm sync -G bot --prod --no-editable
+# ⚠️ 关键：使用 -E bot（不是 -G）
+RUN pdm sync --prod --no-editable -E bot
 
 # =========================
 # 第二阶段：运行环境
@@ -35,29 +36,24 @@ ENV PATH="/app/.venv/bin:$PATH" \
 
 WORKDIR /app
 
-# 安装运行时依赖
+# 安装运行依赖 + Node（新版）
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         ffmpeg \
-        nodejs \
-        npm \
+        curl \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs \
     && npm install -g pm2 \
     && rm -rf /var/lib/apt/lists/*
-
-# （可选）只在需要时安装 pdm
-# RUN pip install pdm
-
-# 挂载目录（建议只保留必要的）
-VOLUME ["/data"]
 
 # 拷贝虚拟环境
 COPY --from=builder /project/.venv /app/.venv
 
-# 再拷贝代码（避免改代码导致依赖重装）
+# 拷贝代码
 COPY . /app
 
-# PM2 配置
-COPY pm2.json /app/pm2.json
+# （可选）防止 python 命令不存在
+RUN ln -s /usr/local/bin/python /usr/bin/python || true
 
 # 启动
 CMD ["pm2-runtime", "pm2.json"]
